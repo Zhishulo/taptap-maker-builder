@@ -1,0 +1,47 @@
+{
+  "name": "taptap-maker-builder",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 技能插件：把 TapTap 制造（TapTap Maker，UrhoX 引擎 + Lua）上的一份游戏策划案落成可玩、可发布的项目——创作方式选择、五要素解析、首轮需求、官方迭代顺序、预览实机验收、发布物料核对，并守住积分与凭证红线；附 3 个确定性校验脚本与 4 个模板。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "skill",
+    "taptap",
+    "taptap-maker",
+    "urhox",
+    "lua",
+    "game-development"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "files": [
+    "lib",
+    "tools",
+    "SKILL.md",
+    "references",
+    "scripts",
+    "assets",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "selftest": "node tools/selftest.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

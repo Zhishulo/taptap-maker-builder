@@ -1,0 +1,16 @@
+# taptap-maker-builder 的 bundle patch 层。
+#
+# `dsh plugin add github:Zhishulo/taptap-maker-builder`（或本地路径）会读本文件，
+# 把这条 loader entry 插进 profile 树。市场只收声明了 `dsh.bundle` 且带本文件的包。
+#
+# 两条硬规则：
+#   · `name` 必须与 package.json 的 `name` 完全一致，写成别的会在开机解析时失败；
+#   · `id` 是 Cordis 插件 id（= lib/index.js 的 `export const name`），
+#     `name` 是包名（安装后从 node_modules 解析）。
+#
+# 本插件没有需要在这里覆写的配置：它只把包自带的 SKILL.md 挂进技能目录，
+# 没有阈值、没有端点、没有密钥。技能本身的可选动作（三个 Python 校验脚本）
+# 由使用者的本机 Python 执行，与宿主无关。
+- insert:
+    - id: taptap-maker-builder
+      name: 'taptap-maker-builder'

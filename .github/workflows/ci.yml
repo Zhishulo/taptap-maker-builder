@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: plugin self test
+        run: node tools/selftest.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: python checks compile
+        run: python -m py_compile scripts/check_brief.py scripts/check_project_layout.py scripts/check_publish_materials.py
