@@ -37,18 +37,23 @@ description:
 
 仓库创建满 24 小时后运行（token 从环境变量读，不进仓库）：
 
-```sh
+```powershell
 $env:GITHUB_TOKEN = (从 Windows 凭据管理器取，别打印)
-node tools/open-market-pr.mjs            # 真提 PR
-node tools/open-market-pr.mjs --dry-run  # 只打印将要做的事
+.\tools\open-market-pr.ps1 -DryRun   # 只打印将要做的事
+.\tools\open-market-pr.ps1           # 真提 PR
+```
+对应的 PowerShell 脚本先从系统代理走，再谈 API：本机 WinINET 配了本地代理，Node 的 `fetch` 连不上 `api.github.com`（超时），`Invoke-RestMethod` 可以。在能直连的环境里，两个脚本等价，任选：
+
+```sh
+GITHUB_TOKEN=... node tools/open-market-pr.mjs --dry-run
 ```
 
 脚本会依次：验证 token 身份 → 复核仓库年龄 → 确保 `Zhishulo/awesome-dsh-plugin` fork 存在 → 把 fork 分支 `add-taptap-maker-builder` 重置到上游 `main` → 写条目文件 → 开 PR（已存在同 head 的开放 PR 时跳过并给出链接）。
 
-退出码：`0` 成功或已存在；`3` 仓库未满 1 天（等一会儿再跑）；`1` 出错。
+退出码：`0` 成功或已存在；`3` 仓库未满 1 天（等一会儿再跑，`-DryRun` 下只警告不退出）；`1` 出错。脚本可重复运行：分支每次重置到上游 `main`，同 head 已开的 PR 直接复用。
 
 ## PR 说明草稿
 
-标题：`Add tapap-maker-builder (skill): TapTap Maker project builder`
+标题：`Add taptap-maker-builder (skill): TapTap Maker project builder`
 
-正文：说明这是一个技能类插件、挂载随包 `SKILL.md`、含三个只读校验脚本与自测、无网络与凭据行为、MIT、知识整理日期与官方文档链接。脚本 `tools/open-market-pr.mjs` 里已经内置了这段正文，不用手写。
+正文在 [`docs/pr-body.md`](./pr-body.md)：技能类插件、挂载随包 `SKILL.md`、含三个只读校验脚本与自测、无网络与凭据行为、MIT。两个脚本都直接读这个文件，不用手写。
