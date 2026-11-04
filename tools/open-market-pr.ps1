@@ -63,19 +63,26 @@ $headers = @{
 # Returns @{ Status = <int>; Data = <parsed body or $null> }. Status is 200 for any
 # 2xx success, otherwise the HTTP status (404 for missing, 0 for transport errors).
 function Invoke-Gh {
-  param([string]$Method = 'GET', [string]$Path, $Body)
-  $params = @{ Method = $Method; Uri = ($ApiBase + $Path); Headers = $headers }
+  param([string]$Method = 'GET', [string]$Path, $Body, [int]$Retries = 2)
+  $params = @{ Method = $Method; Uri = ($ApiBase + $Path); Headers = $headers; TimeoutSec = 60 }
   if ($null -ne $Body) {
     $params.Body = ($Body | ConvertTo-Json -Depth 10 -Compress)
     $params.ContentType = 'application/json'
   }
-  try {
-    $data = Invoke-RestMethod @params
-    [pscustomobject]@{ Status = 200; Data = $data }
-  } catch {
-    $code = 0
-    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode.value__ }
-    [pscustomobject]@{ Status = $code; Data = $null; Error = $_.Exception.Message }
+  for ($attempt = 0; $attempt -le $Retries; $attempt++) {
+    try {
+      $data = Invoke-RestMethod @params
+      return [pscustomobject]@{ Status = 200; Data = $data }
+    } catch {
+      # Status 0 means the request never reached GitHub (DNS, proxy, TLS).
+      # Those are worth a retry; an HTTP error is the answer, not a hiccup.
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode.value__ }
+      if ($code -ne 0 -or $attempt -eq $Retries) {
+        return [pscustomobject]@{ Status = $code; Data = $null; Error = $_.Exception.Message }
+      }
+      Start-Sleep -Seconds 2
+    }
   }
 }
 
