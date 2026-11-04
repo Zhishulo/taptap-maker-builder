@@ -11,6 +11,10 @@ never printed, logged or written to disk.
 .PARAMETER DryRun
 Print what would happen; do not create a fork, branch, file or PR.
 
+.NOTES
+Set HTTPS_PROXY (or HTTP_PROXY / ALL_PROXY) when GitHub is only reachable
+through a local proxy.
+
 exit 0 = done or an open PR already exists; 3 = repo younger than 24h; 1 = error
 #>
 [CmdletBinding()]
@@ -18,6 +22,19 @@ param([switch]$DryRun)
 
 $ErrorActionPreference = 'Stop'
 try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 } catch { }
+
+# Machines that reach GitHub through a local proxy (Clash/V2Ray and friends)
+# usually rely on the system proxy, which .NET honours, but a user-scoped
+# HTTPS_PROXY is honoured too so the script works from a plain shell.
+$proxyUrl = $env:HTTPS_PROXY
+if ([string]::IsNullOrWhiteSpace($proxyUrl)) { $proxyUrl = $env:HTTP_PROXY }
+if ([string]::IsNullOrWhiteSpace($proxyUrl)) { $proxyUrl = $env:ALL_PROXY }
+if (-not [string]::IsNullOrWhiteSpace($proxyUrl)) {
+  # WebProxy treats these as regular expressions, not wildcards.
+  $bypass = @('localhost', '127\.0\.0\.1', '.*\.local')
+  [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyUrl, $true, $bypass)
+  Write-Output ('proxy from environment: ' + $proxyUrl)
+}
 
 $Owner = 'Zhishulo'
 $Repo = 'taptap-maker-builder'
